@@ -22,17 +22,27 @@ namespace ChaosHost.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            _logger.LogInformation("Get");
-
-            using (var httpClient = _httpClientFactory.CreateClient("ThirdPartyApi"))
+            try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, "weatherforecast");
-                var httpResponseMessage = await httpClient.SendAsync(request);
+                _logger.LogInformation("Get");
 
-                var content = await httpResponseMessage.Content.ReadAsStringAsync();
+                using (var httpClient = _httpClientFactory.CreateClient("ThirdPartyApi"))
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, "weatherforecast");
+                    var httpResponseMessage = await httpClient.SendAsync(request);
 
-                return Ok(content);
+                    var content = await httpResponseMessage.Content.ReadAsStringAsync();
+                    if (httpResponseMessage.IsSuccessStatusCode)
+                        return Ok(content);
+
+                    return StatusCode(500, "A third party request was not successful");
+                    
+                }
+            }catch(Exception e)
+            {
+                return StatusCode(500, $"An error occured!");
             }
+            
         }
     }
 }
